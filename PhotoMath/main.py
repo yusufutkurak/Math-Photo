@@ -12,11 +12,12 @@ from graphics import generate_graph_frames
 
 app = FastAPI()
 
-# Statik klasörleri oluştur
+# Klasörler
 os.makedirs("static", exist_ok=True)
 os.makedirs("temp", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -32,6 +33,7 @@ async def upload_image(
     file: UploadFile = File(...),
     equation: str = Form(...)
 ):
+    # Session ve klasör hazırlığı
     session_id = uuid4().hex
     session_dir = os.path.join("temp", session_id)
     os.makedirs(session_dir, exist_ok=True)
@@ -42,6 +44,7 @@ async def upload_image(
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(graph_frame_folder, exist_ok=True)
 
+    # Video isimleri ve path’leri
     video_name = f"output_{session_id}.mp4"
     graph_video_name = f"graph_video_{session_id}.mp4"
     video_path = os.path.join("static", video_name)
@@ -78,17 +81,20 @@ async def upload_image(
             return x
 
     def generate_main_video():
+        # Frame üret
         for i in range(1, 501):
             value = f(pixels + i)
             wrapped = np.mod(value, 256).astype(np.uint8)
             frame = Image.fromarray(wrapped)
 
+            # Genişlik ve yükseklik çift sayı olmalı
             w, h = frame.size
             if w % 2 != 0 or h % 2 != 0:
                 frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
 
             frame.save(os.path.join(output_folder, f"foto{i}.jpg"))
 
+        # Normal video
         subprocess.run([
             "ffmpeg",
             "-framerate", "30",
@@ -98,8 +104,8 @@ async def upload_image(
             video_path
         ])
 
-        generate_graph_frames(input_folder=output_folder, output_folder=graph_frame_folder)
-
+        # Grafik frame ve video
+        generate_graph_frames(output_folder, graph_frame_folder)
         subprocess.run([
             "ffmpeg",
             "-framerate", "30",
@@ -109,10 +115,11 @@ async def upload_image(
             graph_video_path
         ])
 
-    generate_main_video()
-    
-    base_url = str(request.base_url).replace("localhost:8000", "159.65.53.223")
-    base_url = str(request.base_url).rstrip("/")
+    # Arka planda video üret
+    background_tasks.add_task(generate_main_video)
+
+    # IP tabanlı URL düzeltme
+    base_url = str(request.base_url).replace("localhost:8000", "159.65.53.223").rstrip("/")
 
     return {
         "video_url": f"{base_url}/static/{video_name}",

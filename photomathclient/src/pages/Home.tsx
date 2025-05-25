@@ -49,10 +49,11 @@ function Home() {
     setIsGraphProcessing(true);
 
     try {
-      const response = await fetch('/upload/', {
+      const response = await fetch('http://159.65.53.223/upload/', {
         method: 'POST',
         body: formData,
       });
+
 
       if (response.ok) {
         const data = await response.json();
@@ -61,16 +62,21 @@ function Home() {
         setGraphVideoUrl(null);
 
         // Grafik videosunu düzenli kontrol et
-        const intervalId = setInterval(async () => {
-          try {
-            const res = await fetch(data.graph_video_url, { method: 'HEAD' });
-            if (res.ok) {
-              setGraphVideoUrl(data.graph_video_url);
-              setIsGraphProcessing(false);
-              clearInterval(intervalId);
-            }
-          } catch (_) {}
-        }, 3000);
+        // Grafik videosunu düzenli kontrol et
+      const intervalId = setInterval(async () => {
+        try {
+          console.log("Kontrol ediliyor:", data.graph_video_url);
+          const res = await fetch(data.graph_video_url, { method: 'HEAD' });
+          if (res.ok) {
+            setGraphVideoUrl(data.graph_video_url);
+            setIsGraphProcessing(false);
+            clearInterval(intervalId);
+          }
+        } catch (err) {
+          console.warn("Henüz hazır değil:", err);
+        }
+      }, 3000);
+
       } else {
         alert('Bir hata oluştu!');
       }
