@@ -109,7 +109,7 @@ async def upload_image(
             graph_video_path
         ])
 
-    background_tasks.add_task(generate_main_video)
+    generate_main_video()
 
     base_url = str(request.base_url).rstrip("/")
 
