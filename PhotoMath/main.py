@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, Request
+from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -29,11 +29,10 @@ app.add_middleware(
 @app.post("/upload/")
 async def upload_image(
     request: Request,
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     equation: str = Form(...)
 ):
-    # Session ve klasör hazırlığı
+    # Session klasörü
     session_id = uuid4().hex
     session_dir = os.path.join("temp", session_id)
     os.makedirs(session_dir, exist_ok=True)
@@ -44,7 +43,7 @@ async def upload_image(
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(graph_frame_folder, exist_ok=True)
 
-    # Video isimleri ve path’leri
+    # Video path'leri
     video_name = f"output_{session_id}.mp4"
     graph_video_name = f"graph_video_{session_id}.mp4"
     video_path = os.path.join("static", video_name)
@@ -54,6 +53,7 @@ async def upload_image(
     with open(input_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
+    # Görsel işle
     image = Image.open(input_path).convert("RGB")
     pixels = np.array(image).astype(np.int64)
     equation = equation.replace("^", "**")
@@ -80,45 +80,41 @@ async def upload_image(
             print(f"Hatalı denklem: {e}")
             return x
 
-    def generate_main_video():
-        # Frame üret
-        for i in range(1, 501):
-            value = f(pixels + i)
-            wrapped = np.mod(value, 256).astype(np.uint8)
-            frame = Image.fromarray(wrapped)
+    # Frame üret
+    for i in range(1, 501):
+        value = f(pixels + i)
+        wrapped = np.mod(value, 256).astype(np.uint8)
+        frame = Image.fromarray(wrapped)
 
-            # Genişlik ve yükseklik çift sayı olmalı
-            w, h = frame.size
-            if w % 2 != 0 or h % 2 != 0:
-                frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
+        # Genişlik ve yükseklik çift olmalı
+        w, h = frame.size
+        if w % 2 != 0 or h % 2 != 0:
+            frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
 
-            frame.save(os.path.join(output_folder, f"foto{i}.jpg"))
+        frame.save(os.path.join(output_folder, f"foto{i}.jpg"))
 
-        # Normal video
-        subprocess.run([
-            "ffmpeg",
-            "-framerate", "30",
-            "-i", f"{output_folder}/foto%d.jpg",
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            video_path
-        ])
+    # Normal video
+    subprocess.run([
+        "ffmpeg",
+        "-framerate", "30",
+        "-i", f"{output_folder}/foto%d.jpg",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        video_path
+    ])
 
-        # Grafik frame ve video
-        generate_graph_frames(output_folder, graph_frame_folder)
-        subprocess.run([
-            "ffmpeg",
-            "-framerate", "30",
-            "-i", f"{graph_frame_folder}/frame_%03d.png",
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            graph_video_path
-        ])
+    # Grafik video
+    generate_graph_frames(output_folder, graph_frame_folder)
+    subprocess.run([
+        "ffmpeg",
+        "-framerate", "30",
+        "-i", f"{graph_frame_folder}/frame_%03d.png",
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        graph_video_path
+    ])
 
-    # Arka planda video üret
-    background_tasks.add_task(generate_main_video)
-
-    # IP tabanlı URL düzeltme
+    # URL düzeltme
     base_url = str(request.base_url).replace("localhost:8000", "159.65.53.223").rstrip("/")
 
     return {

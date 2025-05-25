@@ -62,7 +62,6 @@ function Home() {
         setGraphVideoUrl(null);
 
         // Grafik videosunu düzenli kontrol et
-        // Grafik videosunu düzenli kontrol et
       const intervalId = setInterval(async () => {
         try {
           console.log("Kontrol ediliyor:", data.graph_video_url);
