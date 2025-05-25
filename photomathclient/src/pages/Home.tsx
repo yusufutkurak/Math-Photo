@@ -49,7 +49,7 @@ function Home() {
     setIsGraphProcessing(true);
 
     try {
-      const response = await fetch('http://159.65.53.223/upload/', {
+      const response = await fetch('/upload/', {
         method: 'POST',
         body: formData,
       });
