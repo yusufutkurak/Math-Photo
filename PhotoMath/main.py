@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
@@ -17,7 +17,6 @@ os.makedirs("static", exist_ok=True)
 os.makedirs("temp", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# CORS ayarları
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,6 +27,7 @@ app.add_middleware(
 
 @app.post("/upload/")
 async def upload_image(
+    request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     equation: str = Form(...)
@@ -42,12 +42,17 @@ async def upload_image(
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(graph_frame_folder, exist_ok=True)
 
+    video_name = f"output_{session_id}.mp4"
+    graph_video_name = f"graph_video_{session_id}.mp4"
+    video_path = os.path.join("static", video_name)
+    graph_video_path = os.path.join("static", graph_video_name)
+
+    # Dosyayı kaydet
     with open(input_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
     image = Image.open(input_path).convert("RGB")
     pixels = np.array(image).astype(np.int64)
-
     equation = equation.replace("^", "**")
 
     def f(x):
@@ -84,9 +89,6 @@ async def upload_image(
 
             frame.save(os.path.join(output_folder, f"foto{i}.jpg"))
 
-        video_name = f"output_{session_id}.mp4"
-        video_path = os.path.join("static", video_name)
-
         subprocess.run([
             "ffmpeg",
             "-framerate", "30",
@@ -96,10 +98,8 @@ async def upload_image(
             video_path
         ])
 
-        graph_video_name = f"graph_video_{session_id}.mp4"
-        graph_video_path = os.path.join("static", graph_video_name)
-
         generate_graph_frames(input_folder=output_folder, output_folder=graph_frame_folder)
+
         subprocess.run([
             "ffmpeg",
             "-framerate", "30",
@@ -111,7 +111,9 @@ async def upload_image(
 
     background_tasks.add_task(generate_main_video)
 
+    base_url = str(request.base_url).rstrip("/")
+
     return {
-        "video_url": f"http://localhost:8000/static/output_{session_id}.mp4",
-        "graph_video_url": f"http://localhost:8000/static/graph_video_{session_id}.mp4"
+        "video_url": f"{base_url}/static/{video_name}",
+        "graph_video_url": f"{base_url}/static/{graph_video_name}"
     }
