@@ -110,7 +110,8 @@ async def upload_image(
         ])
 
     generate_main_video()
-
+    
+    base_url = str(request.base_url).replace("localhost:8000", "159.65.53.223")
     base_url = str(request.base_url).rstrip("/")
 
     return {
