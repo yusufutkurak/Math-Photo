@@ -1,0 +1,17 @@
+{
+  "nav_home": "Home",
+  "nav_purpose": "What is the purpose?",
+  "upload_photo": "Upload Photo",
+  "submit": "Submit",
+  "loading": "Loading...",
+  "dropzone": "🖼️ Drag & drop or click to select",
+  "enter_equation": "Enter Function",
+  "normal_video": "Generated Video",
+  "graph_video": "RGB Graph Video",
+  "processing_image": "📸 Processing image...",
+  "processing_graph": "📊 Generating graph...",
+  "footer_text": "This app applies a color transformation based on the mathematical function you provide and shows its progression over time in a video.",
+  "about_me": "Hello, I'm Yusuf Utkurak, a computer engineering student. I created this project for fun and to improve myself. I'm interested in topics like app development, artificial intelligence, and robotics.",
+  "about_title": "About Me",
+  "clear": "Clear"
+}

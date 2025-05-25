@@ -1,0 +1,35 @@
+.language-switch {
+  width: 80px;
+  height: 32px;
+  background-color: #1f2937;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 3px;
+  transition: background-color 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.toggle {
+  width: 50%;
+  height: 100%;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+  color: white;
+  background-color: #3b82f6;
+  user-select: none;
+}
+
+.toggle.tr {
+  transform: translateX(0%);
+}
+
+.toggle.en {
+  transform: translateX(100%);
+}

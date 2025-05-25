@@ -1,0 +1,17 @@
+{
+  "nav_home": "Ana Sayfa",
+  "nav_purpose": "Bu site nereden çıktı?",
+  "upload_photo": "Fotoğraf Yükle",
+  "submit": "Gönder",
+  "loading": "Yükleniyor...",
+  "dropzone": "🖼️ Sürükle ve bırak ya da tıkla ve seç",
+  "enter_equation": "Fonksiyon Gir",
+  "normal_video": "İşlenmiş Video",
+  "graph_video": "RGP Grafik",
+  "processing_image": "📸 Resim işleniyor...",
+  "processing_graph": "📊 Grafik oluşturuluyor...",
+  "footer_text": "Bu uygulama, yüklediğiniz fotoğraf üzerinde verdiğiniz matematiksel fonksiyona göre renk dönüşümü uygular ve fonksiyonun zaman içinde değişimini bir video ile gösterir.",
+  "about_me": "Merhaba, ben Yusuf Utkurak, bilgisayar mühendisliği öğrencisiyim. Bu projeyi eğlence amaçlı ve kişisel gelişimim için yaptım. Uygulama geliştirme, yapay zeka ve robotik gibi konulara ilgi duyuyorum.",
+  "about_title": "Hakkımda",
+  "clear": "Temizle"
+}

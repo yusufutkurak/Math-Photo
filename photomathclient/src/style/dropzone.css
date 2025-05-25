@@ -1,0 +1,28 @@
+
+/* Dropzone alanı */
+.dropzone {
+  display: flex;
+  min-height: 150px;
+  border: 2px dashed #64748b;
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  background-color: #2d3748;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  margin-bottom: 1rem;
+  color: #94a3b8;
+}
+
+.dropzone:hover {
+  background-color: #1e293b;
+  border-color: #3b82f6;
+}
+
+/* Dosya adı yazısı */
+.file-info {
+  color: #4ade80;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
