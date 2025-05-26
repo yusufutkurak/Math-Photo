@@ -12,7 +12,7 @@ from graphics import generate_graph_frames
 
 app = FastAPI()
 
-STATIC_DIR = "/root/Math-Photo/PhotoMath/static"
+STATIC_DIR = "/var/www/photomath-static"
 TEMP_DIR = "/root/Math-Photo/PhotoMath/temp"
 
 # Klasörler
