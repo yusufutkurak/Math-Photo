@@ -7,6 +7,7 @@ import os
 import subprocess
 import shutil
 from uuid import uuid4
+import threading
 
 from graphics import generate_graph_frames
 
@@ -106,19 +107,24 @@ async def upload_image(
         video_path
     ])
 
-    # Grafik video
-    generate_graph_frames(output_folder, graph_frame_folder)
-    subprocess.run([
-        "ffmpeg",
-        "-framerate", "30",
-        "-i", f"{graph_frame_folder}/frame_%03d.png",
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        graph_video_path
-    ])
-
-    return {
-    "video_url": f"/media/{video_name}",
-    "graph_video_url": f"/media/{graph_video_name}"
+    # --- Ana cevap oluştur ---
+    response = {
+        "video_url": f"/media/{video_name}",
+        "graph_video_url": f"/media/{graph_video_name}"
     }
 
+    # Grafik videoyu arka planda oluştur
+    def generate_graph_async():
+        generate_graph_frames(output_folder, graph_frame_folder)
+        subprocess.run([
+            "ffmpeg",
+            "-framerate", "30",
+            "-i", f"{graph_frame_folder}/frame_%03d.png",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            graph_video_path
+        ])
+
+    threading.Thread(target=generate_graph_async).start()
+
+    return response
