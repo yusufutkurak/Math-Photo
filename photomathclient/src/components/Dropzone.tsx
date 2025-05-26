@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import '../style/dropzone.css';
-import i18n from '../i18n'; // UNUTMA: import et
+import i18n from '../i18n';
 import { useTranslation } from 'react-i18next';
 
 interface DropzoneProps {
@@ -10,7 +10,7 @@ interface DropzoneProps {
 const Dropzone: React.FC<DropzoneProps> = ({ onFileAccepted }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = React.useState<string | null>(null);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
@@ -34,7 +34,6 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFileAccepted }) => {
       className="dropzone"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      onClick={() => fileInputRef.current?.click()}  // ← sadece buraya bırak
     >
       <input
         type="file"
@@ -43,14 +42,14 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFileAccepted }) => {
         ref={fileInputRef}
         style={{ display: 'none' }}
       />
-      {fileName ? (
-        <div className="file-info">✅ {fileName} yüklendi</div>
-      ) : (
-        <div className="dropzone-placeholder">{t('dropzone')}</div>
-      )}
+      <div>
+        {fileName ? (
+          <div className="file-info">✅ {fileName} yüklendi</div>
+        ) : (
+          <div className="dropzone-placeholder">{t('dropzone')}</div>
+        )}
+      </div>
     </label>
-
-
   );
 };
 
