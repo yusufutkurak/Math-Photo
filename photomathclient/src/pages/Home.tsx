@@ -24,7 +24,7 @@ function Home() {
   };
 
   const validateEquation = (equation: string): string | null => {
-    const allowedCharsRegex = /^[0-9πex√+\-*/^()x.\s]*(sin|cos|tan|cot|log|ln)?[0-9πex√+\-*/^()x.\s]*$/;
+    const allowedCharsRegex = /^[0-9πex√+\-*/^()x.\s]*(sin|cos|tan|cot|log|ln)*[0-9πex√+\-*/^()x.\s]*$/i;
     if (!allowedCharsRegex.test(equation)) return 'Geçersiz karakterler var.';
     if (/[+\-*/^]{2,}/.test(equation)) return 'Arka arkaya birden fazla operatör var.';
     if (/^[*/]/.test(equation.trim())) return 'İfade çarpma veya bölme ile başlayamaz.';

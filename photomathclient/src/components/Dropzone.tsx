@@ -34,6 +34,7 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFileAccepted }) => {
       className="dropzone"
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
+      onClick={() => fileInputRef.current?.click()}  // ← sadece buraya bırak
     >
       <input
         type="file"
@@ -42,14 +43,13 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFileAccepted }) => {
         ref={fileInputRef}
         style={{ display: 'none' }}
       />
-      <div onClick={() => fileInputRef.current?.click()}>
-        {fileName ? (
-          <div className="file-info">✅ {fileName} yüklendi</div>
-        ) : (
-          <div className="dropzone-placeholder">{t('dropzone')}</div>
-        )}
-      </div>
+      {fileName ? (
+        <div className="file-info">✅ {fileName} yüklendi</div>
+      ) : (
+        <div className="dropzone-placeholder">{t('dropzone')}</div>
+      )}
     </label>
+
 
   );
 };
