@@ -114,11 +114,12 @@ function Home() {
               <span>{t('processing_image')}</span>
             </div>
           )}
-          {videoUrl && (
-            <video controls>
-              <source src={videoUrl} type="video/mp4" />
-            </video>
-          )}
+         {videoUrl && (
+          <video controls>
+            <source src={`${window.location.origin}${videoUrl}`} type="video/mp4" />
+          </video>
+        )}
+
         </div>
 
         <div className='video'>
@@ -131,9 +132,10 @@ function Home() {
           )}
           {graphVideoUrl && (
             <video controls>
-              <source src={graphVideoUrl} type="video/mp4" />
+              <source src={`${window.location.origin}${graphVideoUrl}`} type="video/mp4" />
             </video>
           )}
+
         </div>
       </div>
 

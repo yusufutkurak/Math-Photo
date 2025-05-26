@@ -12,10 +12,13 @@ from graphics import generate_graph_frames
 
 app = FastAPI()
 
+STATIC_DIR = "/root/Math-Photo/PhotoMath/static"
+TEMP_DIR = "/root/Math-Photo/PhotoMath/temp"
+
 # Klasörler
-os.makedirs("static", exist_ok=True)
-os.makedirs("temp", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(TEMP_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # CORS
 app.add_middleware(
@@ -34,7 +37,7 @@ async def upload_image(
 ):
     # Session klasörü
     session_id = uuid4().hex
-    session_dir = os.path.join("temp", session_id)
+    session_dir = os.path.join(TEMP_DIR, session_id)
     os.makedirs(session_dir, exist_ok=True)
 
     input_path = os.path.join(session_dir, "input.jpg")
@@ -46,8 +49,8 @@ async def upload_image(
     # Video path'leri
     video_name = f"output_{session_id}.mp4"
     graph_video_name = f"graph_video_{session_id}.mp4"
-    video_path = os.path.join("static", video_name)
-    graph_video_path = os.path.join("static", graph_video_name)
+    video_path = os.path.join(STATIC_DIR, video_name)
+    graph_video_path = os.path.join(STATIC_DIR, graph_video_name)
 
     # Dosyayı kaydet
     with open(input_path, "wb") as f:
@@ -114,10 +117,7 @@ async def upload_image(
         graph_video_path
     ])
 
-    # URL düzeltme
-    base_url = str(request.base_url).replace("localhost:8000", "159.65.53.223").rstrip("/")
-
     return {
-        "video_url": f"{base_url}/static/{video_name}",
-        "graph_video_url": f"{base_url}/static/{graph_video_name}"
+        "video_url": f"/static/{video_name}",
+        "graph_video_url": f"/static/{graph_video_name}"
     }
