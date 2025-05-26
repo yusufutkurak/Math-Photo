@@ -118,6 +118,7 @@ async def upload_image(
     ])
 
     return {
-        "video_url": f"/static/{video_name}",
-        "graph_video_url": f"/static/{graph_video_name}"
+    "video_url": f"/media/{video_name}",
+    "graph_video_url": f"/media/{graph_video_name}"
     }
+
