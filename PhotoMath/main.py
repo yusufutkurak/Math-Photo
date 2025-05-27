@@ -86,7 +86,7 @@ async def upload_image(
             return x
 
     # Frame üret
-    for i in range(1, 501):
+    for i in range(1, 301):
         value = f(pixels + i)
         wrapped = np.mod(value, 256).astype(np.uint8)
         frame = Image.fromarray(wrapped)
