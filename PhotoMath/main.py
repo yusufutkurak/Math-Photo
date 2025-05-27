@@ -77,6 +77,7 @@ async def upload_image(
                     "ln": np.log,
                     "π": np.pi,
                     "e": np.e,
+                    "√": np.sqrt,
                     "__builtins__": {}
                 }
             )
