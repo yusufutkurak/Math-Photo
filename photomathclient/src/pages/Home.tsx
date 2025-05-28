@@ -141,7 +141,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
           {videoUrl && normalProgress === 100 && (
             <video controls width="100%" style={{ marginTop: "1rem" }}>
-              <source src={videoUrl.startsWith("http") ? videoUrl : `${window.location.origin}${videoUrl}`} type="video/mp4" />
+            <source src={videoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
@@ -161,7 +161,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
           {graphVideoUrl && graphProgress === 100 && (
             <video controls width="100%" style={{ marginTop: "1rem" }}>
-              <source src={graphVideoUrl.startsWith("http") ? graphVideoUrl : `${window.location.origin}${graphVideoUrl}`} type="video/mp4" />
+            <source src={graphVideoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
