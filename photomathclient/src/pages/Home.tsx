@@ -17,7 +17,6 @@ function Home() {
   const [normalProgress, setNormalProgress] = useState<number>(0);
   const [graphProgress, setGraphProgress] = useState<number>(0);
   const [videoReady, setVideoReady] = useState<boolean>(false);
-  const [submitted, setSubmitted] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const graphRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
@@ -68,7 +67,6 @@ function Home() {
     setNormalProgress(0);
     setGraphProgress(0);
     setVideoReady(false);
-    setSubmitted(true);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -141,42 +139,45 @@ function Home() {
         {/* Normal Video */}
         <div className="video">
           <h3>{t('normal_video')}</h3>
-          {submitted && normalProgress < 100 ? (
+          {isVideoProcessing && normalProgress < 100 ? (
             <div className="custom-progress">
               <div
                 style={{ "--progress-width": `${normalProgress}%` } as React.CSSProperties}
               ></div>
             </div>
-          ) : submitted && !videoReady ? (
+          ) : isVideoProcessing && !videoReady ? (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>Videonuz hazırlanıyor...</span>
             </div>
-          ) : videoReady && videoUrl ? (
-            <video
-              ref={videoRef}
-              key={videoUrl}
-              controls
-              muted
-              autoPlay
-              width="100%"
-              style={{ marginTop: "1rem", backgroundColor: "#000" }}
-            >
-              <source src={videoUrl ?? ""} type="video/mp4" />
-              Tarayıcınız video etiketini desteklemiyor.
-            </video>
-          ) : null}
+          ) : (
+            videoUrl && videoReady && (
+              <video
+                ref={videoRef}
+                key={videoUrl}
+                controls
+                muted
+                autoPlay
+                width="100%"
+                style={{ marginTop: "1rem", backgroundColor: "#000" }}
+              >
+                <source src={videoUrl ?? ""} type="video/mp4" />
+                Tarayıcınız video etiketini desteklemiyor.
+              </video>
+            )
+          )}
         </div>
 
         {/* Grafik Video */}
         <div className="video">
           <h3>{t('graph_video')}</h3>
-          {submitted && videoReady && !graphVideoUrl ? (
+          {isGraphProcessing && videoReady && !graphVideoUrl && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>RGB grafiği hazırlanıyor...</span>
             </div>
-          ) : graphVideoUrl ? (
+          )}
+          {graphVideoUrl && (
             <video
               ref={graphRef}
               key={graphVideoUrl}
@@ -189,7 +190,7 @@ function Home() {
               <source src={graphVideoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
-          ) : null}
+          )}
         </div>
       </div>
 
