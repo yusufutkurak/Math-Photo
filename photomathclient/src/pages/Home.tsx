@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MathKeyboard from '../components/MathKeyboard';
 import Dropzone from '../components/Dropzone';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,26 @@ function Home() {
   const [equation, setEquation] = useState<string>("");
   const [isVideoProcessing, setIsVideoProcessing] = useState<boolean>(false);
   const [isGraphProcessing, setIsGraphProcessing] = useState<boolean>(false);
-  const { t, i18n } = useTranslation();
+  const [progressUrl, setProgressUrl] = useState<string | null>(null);
+  const [normalProgress, setNormalProgress] = useState<number>(0);
+  const [graphProgress, setGraphProgress] = useState<number>(0);
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    if (progressUrl) {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(progressUrl);
+          const data = await res.json();
+          setNormalProgress(data.normal_progress);
+          setGraphProgress(data.graph_progress);
+        } catch (error) {
+          console.error("Progress fetch failed:", error);
+        }
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [progressUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -54,28 +73,25 @@ function Home() {
         body: formData,
       });
 
-
       if (response.ok) {
         const data = await response.json();
         setVideoUrl(data.video_url);
-        setIsVideoProcessing(false); // normal video bitti
+        setProgressUrl(data.progress_url);
+        setIsVideoProcessing(false);
         setGraphVideoUrl(null);
 
-        // Grafik videosunu düzenli kontrol et
-      const intervalId = setInterval(async () => {
-        try {
-          console.log("Kontrol ediliyor:", data.graph_video_url);
-          const res = await fetch(data.graph_video_url, { method: 'HEAD' });
-          if (res.ok) {
-            setGraphVideoUrl(data.graph_video_url);
-            setIsGraphProcessing(false);
-            clearInterval(intervalId);
+        const intervalId = setInterval(async () => {
+          try {
+            const res = await fetch(data.graph_video_url, { method: 'HEAD' });
+            if (res.ok) {
+              setGraphVideoUrl(data.graph_video_url);
+              setIsGraphProcessing(false);
+              clearInterval(intervalId);
+            }
+          } catch (err) {
+            console.warn("Graph video not ready yet:", err);
           }
-        } catch (err) {
-          console.warn("Henüz hazır değil:", err);
-        }
-      }, 3000);
-
+        }, 3000);
       } else {
         alert('Bir hata oluştu!');
       }
@@ -89,7 +105,6 @@ function Home() {
 
   return (
     <div className="app-container">
-
       <div className="main-content">
         <div className="upload-section">
           <h2>{t('upload_photo')}</h2>
@@ -105,25 +120,28 @@ function Home() {
         </div>
       </div>
 
-     <div className="video-container">
+      <div className="video-container">
         <div className='video'>
           <h3>{t('normal_video')}</h3>
+          <p>Yükleme: {normalProgress}%</p>
+          <progress value={normalProgress} max="100" />
           {isVideoProcessing && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>{t('processing_image')}</span>
             </div>
           )}
-         {videoUrl && (
-          <video controls>
-            <source src={`${window.location.origin}${videoUrl}`} type="video/mp4" />
-          </video>
-        )}
-
+          {videoUrl && (
+            <video controls>
+              <source src={`${window.location.origin}${videoUrl}`} type="video/mp4" />
+            </video>
+          )}
         </div>
 
         <div className='video'>
           <h3>{t('graph_video')}</h3>
+          <p>Yükleme: {graphProgress}%</p>
+          <progress value={graphProgress} max="100" />
           {isGraphProcessing && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
@@ -135,10 +153,8 @@ function Home() {
               <source src={`${window.location.origin}${graphVideoUrl}`} type="video/mp4" />
             </video>
           )}
-
         </div>
       </div>
-
 
       <footer className="footer">
         {t('footer_text')}
