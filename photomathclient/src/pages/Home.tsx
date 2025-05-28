@@ -167,13 +167,13 @@ useEffect(() => {
                 style={{ "--progress-width": `${normalProgress}%` } as React.CSSProperties}
               ></div>
             </div>
-          ) : isVideoProcessing && !videoReady ? (
+          ) : !videoReady ? (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>Videonuz hazırlanıyor...</span>
             </div>
           ) : (
-            videoUrl && videoReady && !isVideoProcessing && (
+            videoUrl && (
               <video
                 ref={videoRef}
                 key="normal-video"
@@ -188,6 +188,7 @@ useEffect(() => {
               </video>
             )
           )}
+
 
         </div>
 
@@ -216,9 +217,8 @@ useEffect(() => {
             )}
           </div>
         )}
-
       </div>
-
+      
       <footer className="footer">
         {t('footer_text')}
       </footer>
