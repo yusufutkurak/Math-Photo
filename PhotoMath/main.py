@@ -8,9 +8,11 @@ import os
 import shutil
 import logging
 from uuid import uuid4
-import imageio.v3 as iio
 import threading
+import subprocess
 import json
+
+from graphics import generate_graph_frames  # senin modülün
 
 # --- Log Ayarları ---
 logging.basicConfig(level=logging.INFO)
@@ -47,7 +49,6 @@ def write_progress(path, normal=None, graph=None):
     with open(path, "w") as f:
         json.dump(progress, f)
 
-# --- Progress API ---
 @app.get("/progress/{session_id}")
 def get_progress(session_id: str):
     progress_file = os.path.join(TEMP_DIR, session_id, "progress.json")
@@ -56,7 +57,6 @@ def get_progress(session_id: str):
             return json.load(f)
     return JSONResponse(content={"normal_progress": 0, "graph_progress": 0})
 
-# --- Upload Endpoint ---
 @app.post("/upload/")
 async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
     session_id = uuid4().hex
@@ -64,12 +64,16 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
     os.makedirs(session_dir, exist_ok=True)
 
     input_path = os.path.join(session_dir, "input.jpg")
-    progress_path = os.path.join(session_dir, "progress.json")
+    output_folder = os.path.join(session_dir, "function_output")
+    graph_frame_folder = os.path.join(session_dir, "graph_frames")
+    os.makedirs(output_folder, exist_ok=True)
+    os.makedirs(graph_frame_folder, exist_ok=True)
 
     video_name = f"output_{session_id}.mp4"
     graph_video_name = f"graph_video_{session_id}.mp4"
     video_path = os.path.join(STATIC_DIR, video_name)
     graph_video_path = os.path.join(STATIC_DIR, graph_video_name)
+    progress_path = os.path.join(session_dir, "progress.json")
 
     with open(input_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
@@ -93,9 +97,8 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
             logger.warning(f"[ERROR] Denklem hatalı: {e}")
             return x
 
-    # --- Normal Video Thread ---
+    # Normal videoyu oluştur
     def generate_normal_video():
-        frames = []
         for i in range(1, 301):
             logger.info(f"[NORMAL FRAME] {i}/300")
             value = f(pixels + i)
@@ -106,30 +109,36 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
             if w % 2 != 0 or h % 2 != 0:
                 frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
 
-            frames.append(np.array(frame))
+            frame.save(os.path.join(output_folder, f"foto{i}.jpg"))
             write_progress(progress_path, normal=int(i / 3))
 
-        iio.imwrite(video_path, frames, fps=30, codec='libx264')
+        subprocess.run([
+            "ffmpeg",
+            "-framerate", "30",
+            "-i", f"{output_folder}/foto%d.jpg",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            video_path
+        ])
         write_progress(progress_path, normal=100)
         logger.info(f"[NORMAL DONE] {video_path}")
 
-    # --- Grafik Video Thread ---
-    def generate_graph_video():
-        graph_frames = []
-        for i in range(1, 301):
-            height = int(100 * np.sin(i * np.pi / 150) + 100)
-            graph = np.full((200, 300, 3), 255, dtype=np.uint8)
-            graph[-height:, i % 300] = [255, 0, 0]
-            graph_frames.append(graph)
-            write_progress(progress_path, graph=int(i / 3.0))
-
-        iio.imwrite(graph_video_path, graph_frames, fps=30, codec='libx264')
+    # Grafik videoyu oluştur
+    def generate_graph_async():
+        generate_graph_frames(output_folder, graph_frame_folder)
+        subprocess.run([
+            "ffmpeg",
+            "-framerate", "30",
+            "-i", f"{graph_frame_folder}/frame_%03d.png",
+            "-c:v", "libx264",
+            "-pix_fmt", "yuv420p",
+            graph_video_path
+        ])
         write_progress(progress_path, graph=100)
         logger.info(f"[GRAPH DONE] {graph_video_path}")
 
-    # Başlat thread'leri (eş zamanlı)
     threading.Thread(target=generate_normal_video).start()
-    threading.Thread(target=generate_graph_video).start()
+    threading.Thread(target=generate_graph_async).start()
 
     return {
         "video_url": f"/media/{video_name}",
