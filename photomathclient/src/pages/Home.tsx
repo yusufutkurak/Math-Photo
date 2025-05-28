@@ -17,6 +17,7 @@ function Home() {
   const [normalProgress, setNormalProgress] = useState<number>(0);
   const [graphProgress, setGraphProgress] = useState<number>(0);
   const [videoReady, setVideoReady] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const graphRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
@@ -67,6 +68,7 @@ function Home() {
     setNormalProgress(0);
     setGraphProgress(0);
     setVideoReady(false);
+    setSubmitted(true);
 
     const formData = new FormData();
     formData.append('file', selectedFile);
@@ -119,84 +121,83 @@ function Home() {
   };
 
   return (
-  <div className="app-container">
-    <div className="main-content">
-      <div className="upload-section">
-        <h2>{t('upload_photo')}</h2>
-        <Dropzone onFileAccepted={setSelectedFile} />
-        <button onClick={handleSubmit} disabled={loading}>
-          {loading ? t("loading") : t("submit")}
-        </button>
+    <div className="app-container">
+      <div className="main-content">
+        <div className="upload-section">
+          <h2>{t('upload_photo')}</h2>
+          <Dropzone onFileAccepted={setSelectedFile} />
+          <button onClick={handleSubmit} disabled={loading}>
+            {loading ? t("loading") : t("submit")}
+          </button>
+        </div>
+
+        <div className="keyboard-section">
+          <h2>{t('enter_equation')}</h2>
+          <MathKeyboard equation={equation} setEquation={setEquation} />
+        </div>
       </div>
 
-      <div className="keyboard-section">
-        <h2>{t('enter_equation')}</h2>
-        <MathKeyboard equation={equation} setEquation={setEquation} />
+      <div className="video-container">
+        {/* Normal Video */}
+        <div className="video">
+          <h3>{t('normal_video')}</h3>
+          {submitted && normalProgress < 100 ? (
+            <div className="custom-progress">
+              <div
+                style={{ "--progress-width": `${normalProgress}%` } as React.CSSProperties}
+              ></div>
+            </div>
+          ) : submitted && !videoReady ? (
+            <div className="spinner-container">
+              <div className="spinner-circle"></div>
+              <span>Videonuz hazırlanıyor...</span>
+            </div>
+          ) : videoReady && videoUrl ? (
+            <video
+              ref={videoRef}
+              key={videoUrl}
+              controls
+              muted
+              autoPlay
+              width="100%"
+              style={{ marginTop: "1rem", backgroundColor: "#000" }}
+            >
+              <source src={videoUrl ?? ""} type="video/mp4" />
+              Tarayıcınız video etiketini desteklemiyor.
+            </video>
+          ) : null}
+        </div>
+
+        {/* Grafik Video */}
+        <div className="video">
+          <h3>{t('graph_video')}</h3>
+          {submitted && videoReady && !graphVideoUrl ? (
+            <div className="spinner-container">
+              <div className="spinner-circle"></div>
+              <span>RGB grafiği hazırlanıyor...</span>
+            </div>
+          ) : graphVideoUrl ? (
+            <video
+              ref={graphRef}
+              key={graphVideoUrl}
+              controls
+              muted
+              autoPlay
+              width="100%"
+              style={{ marginTop: "1rem", backgroundColor: "#000" }}
+            >
+              <source src={graphVideoUrl ?? ""} type="video/mp4" />
+              Tarayıcınız video etiketini desteklemiyor.
+            </video>
+          ) : null}
+        </div>
       </div>
+
+      <footer className="footer">
+        {t('footer_text')}
+      </footer>
     </div>
-
-    <div className="video-container">
-      {/* Normal Video */}
-      <div className="video">
-        <h3>{t('normal_video')}</h3>
-        {normalProgress < 100 ? (
-          <div className="custom-progress">
-            <div
-              style={{ "--progress-width": `${normalProgress}%` } as React.CSSProperties}
-            ></div>
-          </div>
-        ) : !videoReady ? (
-          <div className="spinner-container">
-            <div className="spinner-circle"></div>
-            <span>Videonuz hazırlanıyor...</span>
-          </div>
-        ) : (
-          <video
-            ref={videoRef}
-            key={videoUrl}
-            controls
-            muted
-            autoPlay
-            width="100%"
-            style={{ marginTop: "1rem", backgroundColor: "#000" }}
-          >
-            <source src={videoUrl ?? ""} type="video/mp4" />
-            Tarayıcınız video etiketini desteklemiyor.
-          </video>
-        )}
-      </div>
-
-      {/* Grafik Video */}
-      <div className="video">
-        <h3>{t('graph_video')}</h3>
-        {!graphVideoUrl ? (
-          <div className="spinner-container">
-            <div className="spinner-circle"></div>
-            <span>RGB grafiği hazırlanıyor...</span>
-          </div>
-        ) : (
-          <video
-            ref={graphRef}
-            key={graphVideoUrl}
-            controls
-            muted
-            autoPlay
-            width="100%"
-            style={{ marginTop: "1rem", backgroundColor: "#000" }}
-          >
-            <source src={graphVideoUrl ?? ""} type="video/mp4" />
-            Tarayıcınız video etiketini desteklemiyor.
-          </video>
-        )}
-      </div>
-    </div>
-
-    <footer className="footer">
-      {t('footer_text')}
-    </footer>
-  </div>
-);
-
+  );
 }
 
 export default Home;
