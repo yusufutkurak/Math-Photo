@@ -84,6 +84,8 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
     logger.info(f"[UPLOAD] Denklem: {equation}")
 
     image = Image.open(input_path).convert("RGB")
+    image.thumbnail((1280, 720), Image.LANCZOS)
+    image.save(input_path)  # overwrite with resized version
     pixels = np.array(image).astype(np.int64)
     equation = equation.replace("^", "**")
 

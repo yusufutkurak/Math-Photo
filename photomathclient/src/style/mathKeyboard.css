@@ -64,3 +64,20 @@
 .clear-button:hover {
   background-color: #ba3131  !important;
 }
+
+@media (max-width: 371px) {
+  /* Math Input */
+  .math-input {
+    display: flex;
+    width: 100%; /* kapsayıcı div'in genişliğine uyum sağlar */
+    font-size: 1.2rem;
+    padding: 8px;
+    margin: 10px 0; /* yatay margin'leri sıfırlayarak taşmayı engeller */
+    border-radius: 6px;
+    border: 1px solid #4a5568; 
+    background-color: #4a5568; 
+    color: #e2e8f0; 
+    box-sizing: border-box; /* padding ve border dahil edilerek taşmayı önler */
+    overflow: hidden; /* ekstra içerik taşarsa gizler */
+  }
+}
