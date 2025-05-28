@@ -140,11 +140,17 @@ const handleSubmit = async (e: React.FormEvent) => {
           )}
 
           {videoUrl && normalProgress === 100 && (
-            <video controls width="100%" style={{ marginTop: "1rem" }}>
-            <source src={videoUrl ?? ""} type="video/mp4" />
+            <video
+              key={videoUrl} // EKLENDİ
+              controls
+              width="100%"
+              style={{ marginTop: "1rem" }}
+            >
+              <source src={videoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
+
         </div>
 
         <div className='video'>
@@ -160,11 +166,17 @@ const handleSubmit = async (e: React.FormEvent) => {
           )}
 
           {graphVideoUrl && graphProgress === 100 && (
-            <video controls width="100%" style={{ marginTop: "1rem" }}>
-            <source src={graphVideoUrl ?? ""} type="video/mp4" />
+            <video
+              key={graphVideoUrl} // EKLENDİ
+              controls
+              width="100%"
+              style={{ marginTop: "1rem" }}
+            >
+              <source src={graphVideoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
+
         </div>
       </div>
 
