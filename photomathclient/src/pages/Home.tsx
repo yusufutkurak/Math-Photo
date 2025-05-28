@@ -217,8 +217,9 @@ useEffect(() => {
             )}
           </div>
         )}
+        
       </div>
-      
+
       <footer className="footer">
         {t('footer_text')}
       </footer>
