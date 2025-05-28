@@ -55,6 +55,28 @@ function Home() {
     }
   }, [videoReady, videoUrl]);
 
+  useEffect(() => {
+  if (videoReady && !graphVideoUrl) {
+    // graph video URL'i backendden otomatik gelmeyecekse, tahminle oluştur
+    const url = videoUrl?.replace("output_", "graph_video_");
+    if (url) setGraphVideoUrl(url);
+  }
+}, [videoReady, videoUrl]);
+
+useEffect(() => {
+  if (graphVideoUrl && graphRef.current) {
+    const tryPlayGraph = async (retries = 0) => {
+      try {
+        await graphRef.current!.play();
+        console.log("✅ [Graph Video] Başarıyla oynatılıyor");
+      } catch {
+        if (retries < 30) setTimeout(() => tryPlayGraph(retries + 1), 2000);
+      }
+    };
+    tryPlayGraph();
+  }
+}, [graphVideoUrl]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const error = validateEquation(equation);
@@ -167,31 +189,33 @@ function Home() {
             )
           )}
         </div>
+        
+        {videoReady && (
+          <div className="video">
+            <h3>{t('graph_video')}</h3>
 
-        {/* Grafik Video */}
-        <div className="video">
-          <h3>{t('graph_video')}</h3>
-          {isGraphProcessing && videoReady && !graphVideoUrl && (
-            <div className="spinner-container">
-              <div className="spinner-circle"></div>
-              <span>RGB grafiği hazırlanıyor...</span>
-            </div>
-          )}
-          {graphVideoUrl && (
-            <video
-              ref={graphRef}
-              key={graphVideoUrl}
-              controls
-              muted
-              autoPlay
-              width="100%"
-              style={{ marginTop: "1rem", backgroundColor: "#000" }}
-            >
-              <source src={graphVideoUrl ?? ""} type="video/mp4" />
-              Tarayıcınız video etiketini desteklemiyor.
-            </video>
-          )}
-        </div>
+            {!graphVideoUrl || isGraphProcessing ? (
+              <div className="spinner-container">
+                <div className="spinner-circle"></div>
+                <span>RGB grafiği hazırlanıyor...</span>
+              </div>
+            ) : (
+              <video
+                ref={graphRef}
+                key={graphVideoUrl}
+                controls
+                muted
+                autoPlay
+                width="100%"
+                style={{ marginTop: "1rem", backgroundColor: "#000" }}
+              >
+                <source src={graphVideoUrl ?? ""} type="video/mp4" />
+                Tarayıcınız video etiketini desteklemiyor.
+              </video>
+            )}
+          </div>
+        )}
+
       </div>
 
       <footer className="footer">
