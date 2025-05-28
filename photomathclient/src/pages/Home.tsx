@@ -18,22 +18,75 @@ function Home() {
   const [graphProgress, setGraphProgress] = useState<number>(0);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (progressUrl) {
-      const interval = setInterval(async () => {
-        try {
-          const res = await fetch(progressUrl);
-          const data = await res.json();
-          setNormalProgress(data.normal_progress);
-          setGraphProgress(data.graph_progress);
-        } catch (error) {
-          console.error("Progress fetch failed:", error);
-        }
-      }, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [progressUrl]);
+    // useEffect: Progress takibi
+useEffect(() => {
+  if (progressUrl) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(progressUrl);
+        const data = await res.json();
 
+        setNormalProgress(data.normal_progress);
+        setGraphProgress(data.graph_progress);
+
+        if (data.normal_progress >= 100) setIsVideoProcessing(false);
+        if (data.graph_progress >= 100) setIsGraphProcessing(false);
+
+      } catch (error) {
+        console.error("Progress fetch failed:", error);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }
+}, [progressUrl]);
+
+// handleSubmit
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const error = validateEquation(equation);
+  if (error) return alert(error);
+  if (!selectedFile) return alert('Lütfen bir dosya seçin.');
+
+  // Reset
+  setVideoUrl(null);
+  setGraphVideoUrl(null);
+  setProgressUrl(null);
+  setNormalProgress(0);
+  setGraphProgress(0);
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  formData.append('equation', equation);
+
+  setLoading(true);
+  setIsVideoProcessing(true);
+  setIsGraphProcessing(true);
+
+  try {
+    const response = await fetch('/upload/', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setVideoUrl(data.video_url);
+      setGraphVideoUrl(data.graph_video_url);
+      setProgressUrl(data.progress_url);
+    } else {
+      alert('Bir hata oluştu!');
+    }
+  } catch (error) {
+    console.error('Hata:', error);
+    alert('Sunucuya erişilemedi.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFile(e.target.files[0]);
@@ -54,54 +107,7 @@ function Home() {
     return null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const error = validateEquation(equation);
-    if (error) return alert(error);
-    if (!selectedFile) return alert('Lütfen bir dosya seçin.');
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('equation', equation);
-    setLoading(true);
-    setIsVideoProcessing(true);
-    setIsGraphProcessing(true);
-
-    try {
-      const response = await fetch('/upload/', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setVideoUrl(data.video_url);
-        setProgressUrl(data.progress_url);
-        setIsVideoProcessing(false);
-        setGraphVideoUrl(null);
-
-        const intervalId = setInterval(async () => {
-          try {
-            const res = await fetch(data.graph_video_url, { method: 'HEAD' });
-            if (res.ok) {
-              setGraphVideoUrl(data.graph_video_url);
-              setIsGraphProcessing(false);
-              clearInterval(intervalId);
-            }
-          } catch (err) {
-            console.warn("Graph video not ready yet:", err);
-          }
-        }, 3000);
-      } else {
-        alert('Bir hata oluştu!');
-      }
-    } catch (error) {
-      console.error('Hata:', error);
-      alert('Sunucuya erişilemedi.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="app-container">
@@ -126,16 +132,16 @@ function Home() {
           <p>Yükleme: {normalProgress}%</p>
           <progress value={normalProgress} max="100" />
           {isVideoProcessing && (
-            <div className="spinner-container">
-              <div className="spinner-circle"></div>
-              <span>{t('processing_image')}</span>
-            </div>
-          )}
-          {videoUrl && (
-            <video controls>
-              <source src={`${window.location.origin}${videoUrl}`} type="video/mp4" />
-            </video>
-          )}
+  <div className="spinner-container">
+    <div className="spinner-circle"></div>
+    <span>{t('processing_image')}</span>
+  </div>
+            )}
+            {videoUrl && !isVideoProcessing && (
+              <video controls>
+                <source src={videoUrl} type="video/mp4" />
+              </video>
+            )}
         </div>
 
         <div className='video'>
@@ -148,9 +154,9 @@ function Home() {
               <span>{t('processing_graph')}</span>
             </div>
           )}
-          {graphVideoUrl && (
+          {graphVideoUrl && !isGraphProcessing && (
             <video controls>
-              <source src={`${window.location.origin}${graphVideoUrl}`} type="video/mp4" />
+              <source src={graphVideoUrl} type="video/mp4" />
             </video>
           )}
         </div>

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -12,7 +12,7 @@ import threading
 import subprocess
 import json
 
-from graphics import generate_graph_frames  # senin modülün
+from graphics import generate_graph_frames  # Grafik video çizim modülün
 
 # --- Log Ayarları ---
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +49,7 @@ def write_progress(path, normal=None, graph=None):
     with open(path, "w") as f:
         json.dump(progress, f)
 
+# --- Progress API ---
 @app.get("/progress/{session_id}")
 def get_progress(session_id: str):
     progress_file = os.path.join(TEMP_DIR, session_id, "progress.json")
@@ -57,8 +58,13 @@ def get_progress(session_id: str):
             return json.load(f)
     return JSONResponse(content={"normal_progress": 0, "graph_progress": 0})
 
+# --- Upload Endpoint ---
 @app.post("/upload/")
-async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
+async def upload_image(
+    request: Request,
+    file: UploadFile = File(...),
+    equation: str = Form(...)
+):
     session_id = uuid4().hex
     session_dir = os.path.join(TEMP_DIR, session_id)
     os.makedirs(session_dir, exist_ok=True)
@@ -89,9 +95,14 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
         try:
             return eval(
                 equation,
-                {"x": x, "np": np, "sin": np.sin, "cos": np.cos, "tan": np.tan,
-                 "cot": lambda x: 1 / np.tan(x), "log": np.log10, "ln": np.log,
-                 "π": np.pi, "e": np.e, "√": np.sqrt, "__builtins__": {}}
+                {
+                    "x": x, "np": np,
+                    "sin": np.sin, "cos": np.cos, "tan": np.tan,
+                    "cot": lambda x: 1 / np.tan(x),
+                    "log": np.log10, "ln": np.log,
+                    "π": np.pi, "e": np.e, "√": np.sqrt,
+                    "__builtins__": {}
+                }
             )
         except Exception as e:
             logger.warning(f"[ERROR] Denklem hatalı: {e}")
@@ -137,11 +148,14 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
         write_progress(progress_path, graph=100)
         logger.info(f"[GRAPH DONE] {graph_video_path}")
 
+    # Eşzamanlı olarak çalıştır
     threading.Thread(target=generate_normal_video).start()
     threading.Thread(target=generate_graph_async).start()
 
+    base_url = str(request.base_url).rstrip("/")
+
     return {
-        "video_url": f"/media/{video_name}",
-        "graph_video_url": f"/media/{graph_video_name}",
-        "progress_url": f"/progress/{session_id}"
+        "video_url": f"{base_url}/media/{video_name}",
+        "graph_video_url": f"{base_url}/media/{graph_video_name}",
+        "progress_url": f"{base_url}/progress/{session_id}"
     }
