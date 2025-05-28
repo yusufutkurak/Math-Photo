@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MathKeyboard from '../components/MathKeyboard';
 import Dropzone from '../components/Dropzone';
 import { useTranslation } from 'react-i18next';
@@ -20,7 +20,9 @@ function Home() {
   const [graphProgress, setGraphProgress] = useState<number>(0);
   const { t } = useTranslation();
 
-  // Yeni: video dosyasının gerçekten oluştuğunu bekle
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const graphRef = useRef<HTMLVideoElement>(null);
+
   const waitUntilVideoExists = async (url: string, setter: (val: boolean) => void) => {
     for (let i = 0; i < 15; i++) {
       try {
@@ -35,7 +37,6 @@ function Home() {
     console.warn("Video zamanında oluşmadı:", url);
   };
 
-  // Progress takibi
   useEffect(() => {
     if (progressUrl) {
       const interval = setInterval(async () => {
@@ -56,20 +57,36 @@ function Home() {
     }
   }, [progressUrl]);
 
-  // Video dosyaları geldiğinde var mı diye kontrol et
   useEffect(() => {
     if (videoUrl) {
+      setReadyToPlay(false);
       waitUntilVideoExists(videoUrl, setReadyToPlay);
     }
   }, [videoUrl]);
 
   useEffect(() => {
     if (graphVideoUrl) {
+      setReadyToPlayGraph(false);
       waitUntilVideoExists(graphVideoUrl, setReadyToPlayGraph);
     }
   }, [graphVideoUrl]);
 
-  // Gönderim işlemi
+  useEffect(() => {
+    if (readyToPlay && videoRef.current) {
+      videoRef.current.play().catch((e) =>
+        console.warn("Normal video autoplay engellendi:", e)
+      );
+    }
+  }, [readyToPlay]);
+
+  useEffect(() => {
+    if (readyToPlayGraph && graphRef.current) {
+      graphRef.current.play().catch((e) =>
+        console.warn("Graph video autoplay engellendi:", e)
+      );
+    }
+  }, [readyToPlayGraph]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -77,7 +94,6 @@ function Home() {
     if (error) return alert(error);
     if (!selectedFile) return alert('Lütfen bir dosya seçin.');
 
-    // Reset
     setVideoUrl(null);
     setGraphVideoUrl(null);
     setProgressUrl(null);
@@ -166,10 +182,13 @@ function Home() {
           )}
           {readyToPlay && normalProgress === 100 && (
             <video
+              ref={videoRef}
               key={videoUrl}
               controls
+              muted
+              autoPlay
               width="100%"
-              style={{ marginTop: "1rem" }}
+              style={{ marginTop: "1rem", backgroundColor: "#000" }}
             >
               <source src={videoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
@@ -189,10 +208,13 @@ function Home() {
           )}
           {readyToPlayGraph && graphProgress === 100 && (
             <video
+              ref={graphRef}
               key={graphVideoUrl}
               controls
+              muted
+              autoPlay
               width="100%"
-              style={{ marginTop: "1rem" }}
+              style={{ marginTop: "1rem", backgroundColor: "#000" }}
             >
               <source src={graphVideoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
