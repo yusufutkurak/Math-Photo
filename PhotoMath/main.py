@@ -11,6 +11,7 @@ import logging
 from uuid import uuid4
 import threading
 import json
+import time
 
 from graphics import generate_graph_frames
 
@@ -34,7 +35,7 @@ app.add_middleware(
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def write_progress(path, normal=None, graph=None):
+def write_progress(path, normal=None, graph=None, video_ready=None):
     progress = {}
     if os.path.exists(path):
         with open(path, "r") as f:
@@ -43,6 +44,8 @@ def write_progress(path, normal=None, graph=None):
         progress["normal_progress"] = normal
     if graph is not None:
         progress["graph_progress"] = graph
+    if video_ready is not None:
+        progress["video_ready"] = video_ready
     with open(path, "w") as f:
         json.dump(progress, f)
 
@@ -51,8 +54,10 @@ def get_progress(session_id: str):
     progress_file = os.path.join(TEMP_DIR, session_id, "progress.json")
     if os.path.exists(progress_file):
         with open(progress_file) as f:
-            return json.load(f)
-    return JSONResponse(content={"normal_progress": 0, "graph_progress": 0})
+            data = json.load(f)
+            data.setdefault("video_ready", False)
+            return data
+    return JSONResponse(content={"normal_progress": 0, "graph_progress": 0, "video_ready": False})
 
 @app.post("/upload/")
 async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
@@ -112,14 +117,25 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
             "-i", f"{output_folder}/foto%d.jpg",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
-            "-movflags", "+faststart",     # <<< Burası çok önemli
+            "-movflags", "+faststart",
             video_path
         ])
 
-        write_progress(progress_path, normal=100)
+        write_progress(progress_path, normal=100, video_ready=True)
         logger.info(f"[NORMAL DONE] {video_path}")
 
     def generate_graph_async():
+        for _ in range(150):  # Max 5 dakika
+            if os.path.exists(progress_path):
+                with open(progress_path) as f:
+                    data = json.load(f)
+                    if data.get("video_ready"):
+                        break
+            time.sleep(2)
+        else:
+            logger.warning("Graph işlemi video_ready olmadan başladı!")
+            return
+
         generate_graph_frames(output_folder, graph_frame_folder)
         subprocess.run([
             "ffmpeg",
@@ -127,13 +143,13 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
             "-i", f"{graph_frame_folder}/frame_%03d.png",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
-            "-movflags", "+faststart",     # <<< Buraya da ekle
+            "-movflags", "+faststart",
             graph_video_path
         ])
-
         write_progress(progress_path, graph=100)
         logger.info(f"[GRAPH DONE] {graph_video_path}")
 
+    # ✅ Thread'leri burada başlat
     threading.Thread(target=generate_normal_video).start()
     threading.Thread(target=generate_graph_async).start()
 
