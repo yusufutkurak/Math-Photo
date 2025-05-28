@@ -24,7 +24,7 @@ function Home() {
   const graphRef = useRef<HTMLVideoElement>(null);
 
   const waitUntilVideoExists = async (url: string, setter: (val: boolean) => void) => {
-    const maxAttempts = 150; // 150 x 2 saniye = 5 dakika
+    const maxAttempts = 150; // 5 dakika
     for (let i = 0; i < maxAttempts; i++) {
       try {
         const res = await fetch(url, { method: "HEAD" });
@@ -41,8 +41,7 @@ function Home() {
       await new Promise(res => setTimeout(res, 2000));
     }
     console.warn("❌ 5 dakika geçti ama video hala bulunamadı:", url);
-};
-
+  };
 
   useEffect(() => {
     if (progressUrl) {
@@ -80,6 +79,7 @@ function Home() {
 
   useEffect(() => {
     if (readyToPlay && videoRef.current) {
+      videoRef.current.load();
       videoRef.current.play().catch((e) =>
         console.warn("Normal video autoplay engellendi:", e)
       );
@@ -88,6 +88,7 @@ function Home() {
 
   useEffect(() => {
     if (readyToPlayGraph && graphRef.current) {
+      graphRef.current.load();
       graphRef.current.play().catch((e) =>
         console.warn("Graph video autoplay engellendi:", e)
       );
@@ -213,7 +214,7 @@ function Home() {
               <span>{t('processing_graph')}</span>
             </div>
           )}
-          
+          {readyToPlayGraph && graphProgress === 100 && (
             <video
               ref={graphRef}
               key={graphVideoUrl}
@@ -223,10 +224,10 @@ function Home() {
               width="100%"
               style={{ marginTop: "1rem", backgroundColor: "#000" }}
             >
-              <source src="http://159.65.53.223/media/output_3212e65d05404f928974bd5342d0c163.mp4" type="video/mp4" />
+              <source src={graphVideoUrl ?? ""} type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
-            
+          )}
         </div>
       </div>
 
