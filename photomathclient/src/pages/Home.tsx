@@ -43,6 +43,30 @@ function Home() {
     console.warn("❌ 5 dakika geçti ama video hala bulunamadı:", url);
   };
 
+ const retryPlayUntilSuccess = (
+  ref: React.RefObject<HTMLVideoElement | null>,
+  label: string
+) => {
+  let attempts = 0;
+  const interval = setInterval(() => {
+    const video = ref.current;
+    if (!video) return;
+    attempts++;
+    console.log(`🎬 [${label}] Oynatma denemesi #${attempts}`);
+    video.load();
+    video.play().then(() => {
+      console.log(`✅ [${label}] Başarıyla oynatılıyor`);
+      clearInterval(interval);
+    }).catch(() => {
+      if (attempts >= 60) {
+        console.warn(`❌ [${label}] 2 dakika içinde başlatılamadı`);
+        clearInterval(interval);
+      }
+    });
+  }, 2000);
+};
+
+
   useEffect(() => {
     if (progressUrl) {
       const interval = setInterval(async () => {
@@ -79,19 +103,13 @@ function Home() {
 
   useEffect(() => {
     if (readyToPlay && videoRef.current) {
-      videoRef.current.load();
-      videoRef.current.play().catch((e) =>
-        console.warn("Normal video autoplay engellendi:", e)
-      );
+      retryPlayUntilSuccess(videoRef, "Normal Video");
     }
   }, [readyToPlay]);
 
   useEffect(() => {
     if (readyToPlayGraph && graphRef.current) {
-      graphRef.current.load();
-      graphRef.current.play().catch((e) =>
-        console.warn("Graph video autoplay engellendi:", e)
-      );
+      retryPlayUntilSuccess(graphRef, "Graph Video");
     }
   }, [readyToPlayGraph]);
 
