@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import MathKeyboard from '../components/MathKeyboard';
 import Dropzone from '../components/Dropzone';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n'; 
+import i18n from '../i18n';
 import '../style/main.css';
 
 function Home() {
@@ -20,46 +20,34 @@ function Home() {
   const [graphProgress, setGraphProgress] = useState<number>(0);
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (videoUrl) {
-      const check = async () => {
-        try {
-          const res = await fetch(videoUrl, { method: 'HEAD' });
-          if (res.ok) setReadyToPlay(true);
-        } catch (e) {
-          console.error("Normal video doğrulanamadı:", e);
+  // Yeni: video dosyasının gerçekten oluştuğunu bekle
+  const waitUntilVideoExists = async (url: string, setter: (val: boolean) => void) => {
+    for (let i = 0; i < 15; i++) {
+      try {
+        const res = await fetch(url, { method: "HEAD" });
+        if (res.ok) {
+          setter(true);
+          return;
         }
-      };
-      check();
+      } catch {}
+      await new Promise(res => setTimeout(res, 2000));
     }
-  }, [videoUrl]);
+    console.warn("Video zamanında oluşmadı:", url);
+  };
 
-  useEffect(() => {
-    if (graphVideoUrl) {
-      const check = async () => {
-        try {
-          const res = await fetch(graphVideoUrl, { method: 'HEAD' });
-          if (res.ok) setReadyToPlayGraph(true);
-        } catch (e) {
-          console.error("Graph video doğrulanamadı:", e);
-        }
-      };
-      check();
-    }
-  }, [graphVideoUrl]);
-
+  // Progress takibi
   useEffect(() => {
     if (progressUrl) {
       const interval = setInterval(async () => {
         try {
           const res = await fetch(progressUrl);
           const data = await res.json();
+
           setNormalProgress(data.normal_progress);
           setGraphProgress(data.graph_progress);
 
           if (data.normal_progress >= 100) setIsVideoProcessing(false);
           if (data.graph_progress >= 100) setIsGraphProcessing(false);
-
         } catch (error) {
           console.error("Progress fetch failed:", error);
         }
@@ -68,6 +56,20 @@ function Home() {
     }
   }, [progressUrl]);
 
+  // Video dosyaları geldiğinde var mı diye kontrol et
+  useEffect(() => {
+    if (videoUrl) {
+      waitUntilVideoExists(videoUrl, setReadyToPlay);
+    }
+  }, [videoUrl]);
+
+  useEffect(() => {
+    if (graphVideoUrl) {
+      waitUntilVideoExists(graphVideoUrl, setReadyToPlayGraph);
+    }
+  }, [graphVideoUrl]);
+
+  // Gönderim işlemi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -156,14 +158,12 @@ function Home() {
           <h3>{t('normal_video')}</h3>
           <p>Yükleme: {normalProgress}%</p>
           <progress value={normalProgress} max="100" />
-
           {isVideoProcessing && normalProgress < 100 && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>{t('processing_image')}</span>
             </div>
           )}
-
           {readyToPlay && normalProgress === 100 && (
             <video
               key={videoUrl}
@@ -181,14 +181,12 @@ function Home() {
           <h3>{t('graph_video')}</h3>
           <p>Yükleme: {graphProgress}%</p>
           <progress value={graphProgress} max="100" />
-
           {isGraphProcessing && graphProgress < 100 && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>{t('processing_graph')}</span>
             </div>
           )}
-
           {readyToPlayGraph && graphProgress === 100 && (
             <video
               key={graphVideoUrl}
