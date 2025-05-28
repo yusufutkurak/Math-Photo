@@ -139,7 +139,8 @@ async def upload_image(
     threading.Thread(target=generate_graph_video).start()
 
     return {
-        "video_url": f"/static/{video_name}",
-        "graph_video_url": f"/static/{graph_video_name}",
+        "video_url": f"/media/{video_name}",
+        "graph_video_url": f"/media/{graph_video_name}",
         "progress_url": f"/progress/{session_id}"
     }
+
