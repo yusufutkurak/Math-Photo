@@ -131,36 +131,43 @@ const handleSubmit = async (e: React.FormEvent) => {
           <h3>{t('normal_video')}</h3>
           <p>Yükleme: {normalProgress}%</p>
           <progress value={normalProgress} max="100" />
-          {isVideoProcessing && (
-  <div className="spinner-container">
-    <div className="spinner-circle"></div>
-    <span>{t('processing_image')}</span>
-  </div>
-            )}
-            {videoUrl && !isVideoProcessing && (
-              <video controls>
-                <source src={videoUrl} type="video/mp4" />
-              </video>
-            )}
+          
+          {isVideoProcessing && normalProgress < 100 && (
+            <div className="spinner-container">
+              <div className="spinner-circle"></div>
+              <span>{t('processing_image')}</span>
+            </div>
+          )}
+
+          {videoUrl && normalProgress === 100 && (
+            <video controls width="100%" style={{ marginTop: "1rem" }}>
+              <source src={videoUrl.startsWith("http") ? videoUrl : `${window.location.origin}${videoUrl}`} type="video/mp4" />
+              Tarayıcınız video etiketini desteklemiyor.
+            </video>
+          )}
         </div>
 
         <div className='video'>
           <h3>{t('graph_video')}</h3>
           <p>Yükleme: {graphProgress}%</p>
           <progress value={graphProgress} max="100" />
-          {isGraphProcessing && (
+
+          {isGraphProcessing && graphProgress < 100 && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>{t('processing_graph')}</span>
             </div>
           )}
-          {graphVideoUrl && !isGraphProcessing && (
-            <video controls>
-              <source src={graphVideoUrl} type="video/mp4" />
+
+          {graphVideoUrl && graphProgress === 100 && (
+            <video controls width="100%" style={{ marginTop: "1rem" }}>
+              <source src={graphVideoUrl.startsWith("http") ? graphVideoUrl : `${window.location.origin}${graphVideoUrl}`} type="video/mp4" />
+              Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
         </div>
       </div>
+
 
       <footer className="footer">
         {t('footer_text')}
