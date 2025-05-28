@@ -16,6 +16,7 @@ import json
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# --- FastAPI App ---
 app = FastAPI()
 
 STATIC_DIR = "/var/www/photomath-static"
@@ -33,8 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Progress yazıcı
-
+# --- Progress JSON yazıcı ---
 def write_progress(path, normal=None, graph=None):
     progress = {}
     if os.path.exists(path):
@@ -47,6 +47,7 @@ def write_progress(path, normal=None, graph=None):
     with open(path, "w") as f:
         json.dump(progress, f)
 
+# --- Progress API ---
 @app.get("/progress/{session_id}")
 def get_progress(session_id: str):
     progress_file = os.path.join(TEMP_DIR, session_id, "progress.json")
@@ -55,11 +56,9 @@ def get_progress(session_id: str):
             return json.load(f)
     return JSONResponse(content={"normal_progress": 0, "graph_progress": 0})
 
+# --- Upload Endpoint ---
 @app.post("/upload/")
-async def upload_image(
-    file: UploadFile = File(...),
-    equation: str = Form(...)
-):
+async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
     session_id = uuid4().hex
     session_dir = os.path.join(TEMP_DIR, session_id)
     os.makedirs(session_dir, exist_ok=True)
@@ -86,44 +85,35 @@ async def upload_image(
         try:
             return eval(
                 equation,
-                {
-                    "x": x,
-                    "np": np,
-                    "sin": np.sin,
-                    "cos": np.cos,
-                    "tan": np.tan,
-                    "cot": lambda x: 1 / np.tan(x),
-                    "log": np.log10,
-                    "ln": np.log,
-                    "π": np.pi,
-                    "e": np.e,
-                    "√": np.sqrt,
-                    "__builtins__": {}
-                }
+                {"x": x, "np": np, "sin": np.sin, "cos": np.cos, "tan": np.tan,
+                 "cot": lambda x: 1 / np.tan(x), "log": np.log10, "ln": np.log,
+                 "π": np.pi, "e": np.e, "√": np.sqrt, "__builtins__": {}}
             )
         except Exception as e:
             logger.warning(f"[ERROR] Denklem hatalı: {e}")
             return x
 
-    # 1. Normal video
-    frames = []
-    for i in range(1, 301):
-        logger.info(f"[FRAME] {i}/300")
-        value = f(pixels + i)
-        wrapped = np.mod(value, 256).astype(np.uint8)
-        frame = Image.fromarray(wrapped)
+    # --- Normal Video Thread ---
+    def generate_normal_video():
+        frames = []
+        for i in range(1, 301):
+            logger.info(f"[NORMAL FRAME] {i}/300")
+            value = f(pixels + i)
+            wrapped = np.mod(value, 256).astype(np.uint8)
+            frame = Image.fromarray(wrapped)
 
-        w, h = frame.size
-        if w % 2 != 0 or h % 2 != 0:
-            frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
+            w, h = frame.size
+            if w % 2 != 0 or h % 2 != 0:
+                frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
 
-        frames.append(np.array(frame))
-        write_progress(progress_path, normal=int(i / 3))  # % cinsinden
+            frames.append(np.array(frame))
+            write_progress(progress_path, normal=int(i / 3))
 
-    iio.imwrite(video_path, frames, fps=30, codec='libx264')
-    write_progress(progress_path, normal=100)
+        iio.imwrite(video_path, frames, fps=30, codec='libx264')
+        write_progress(progress_path, normal=100)
+        logger.info(f"[NORMAL DONE] {video_path}")
 
-    # 2. Grafik videosu background'da oluşturulacak
+    # --- Grafik Video Thread ---
     def generate_graph_video():
         graph_frames = []
         for i in range(1, 301):
@@ -135,7 +125,10 @@ async def upload_image(
 
         iio.imwrite(graph_video_path, graph_frames, fps=30, codec='libx264')
         write_progress(progress_path, graph=100)
+        logger.info(f"[GRAPH DONE] {graph_video_path}")
 
+    # Başlat thread'leri (eş zamanlı)
+    threading.Thread(target=generate_normal_video).start()
     threading.Thread(target=generate_graph_video).start()
 
     return {
@@ -143,4 +136,3 @@ async def upload_image(
         "graph_video_url": f"/media/{graph_video_name}",
         "progress_url": f"/progress/{session_id}"
     }
-
