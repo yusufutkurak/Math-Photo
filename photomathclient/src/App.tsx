@@ -20,7 +20,7 @@ function App() {
     <div>
       <nav className="navbar">
       <div className="navbar-inner">
-        <h1 className="navbar-title">Math Photo</h1>
+        <h1 className="navbar-title">Func Pix</h1>
         <ul className="navbar-links">
           <li><a href="/">{t('nav_home')}</a></li>
           <li className="navbar-link curious-link">
