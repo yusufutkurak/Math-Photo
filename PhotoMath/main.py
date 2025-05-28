@@ -153,8 +153,11 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
     threading.Thread(target=generate_normal_video).start()
     threading.Thread(target=generate_graph_async).start()
 
+    DOMAIN = "https://funcpix.com"
+
     return {
-        "video_url": f"http://159.65.53.223/media/{video_name}",
-        "graph_video_url": f"http://159.65.53.223/media/{graph_video_name}",
+        "video_url": f"{DOMAIN}/media/{video_name}",
+        "graph_video_url": f"{DOMAIN}/media/{graph_video_name}",
         "progress_url": f"/progress/{session_id}"
     }
+
