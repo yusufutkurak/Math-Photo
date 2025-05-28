@@ -173,10 +173,10 @@ useEffect(() => {
               <span>Videonuz hazırlanıyor...</span>
             </div>
           ) : (
-            videoUrl && videoReady && (
+            videoUrl && videoReady && !isVideoProcessing && (
               <video
                 ref={videoRef}
-                key={videoUrl}
+                key="normal-video"
                 controls
                 muted
                 autoPlay
@@ -188,8 +188,9 @@ useEffect(() => {
               </video>
             )
           )}
+
         </div>
-        
+
         {videoReady && (
           <div className="video">
             <h3>{t('graph_video')}</h3>
