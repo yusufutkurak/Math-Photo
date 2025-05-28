@@ -24,18 +24,25 @@ function Home() {
   const graphRef = useRef<HTMLVideoElement>(null);
 
   const waitUntilVideoExists = async (url: string, setter: (val: boolean) => void) => {
-    for (let i = 0; i < 15; i++) {
+    const maxAttempts = 150; // 150 x 2 saniye = 5 dakika
+    for (let i = 0; i < maxAttempts; i++) {
       try {
         const res = await fetch(url, { method: "HEAD" });
         if (res.ok) {
+          console.log("✅ Video bulundu:", url);
           setter(true);
           return;
+        } else {
+          console.log(`⏳ [${i + 1}/${maxAttempts}] Video henüz yok - Status: ${res.status}`);
         }
-      } catch {}
+      } catch (e) {
+        console.log(`⚠️ [${i + 1}/${maxAttempts}] Bağlantı hatası:`, e);
+      }
       await new Promise(res => setTimeout(res, 2000));
     }
-    console.warn("Video zamanında oluşmadı:", url);
-  };
+    console.warn("❌ 5 dakika geçti ama video hala bulunamadı:", url);
+};
+
 
   useEffect(() => {
     if (progressUrl) {
