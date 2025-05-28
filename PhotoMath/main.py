@@ -112,8 +112,10 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
             "-i", f"{output_folder}/foto%d.jpg",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",     # <<< Burası çok önemli
             video_path
         ])
+
         write_progress(progress_path, normal=100)
         logger.info(f"[NORMAL DONE] {video_path}")
 
@@ -125,8 +127,10 @@ async def upload_image(file: UploadFile = File(...), equation: str = Form(...)):
             "-i", f"{graph_frame_folder}/frame_%03d.png",
             "-c:v", "libx264",
             "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",     # <<< Buraya da ekle
             graph_video_path
         ])
+
         write_progress(progress_path, graph=100)
         logger.info(f"[GRAPH DONE] {graph_video_path}")
 
