@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MathKeyboard from '../components/MathKeyboard';
 import Dropzone from '../components/Dropzone';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,8 @@ function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [graphVideoUrl, setGraphVideoUrl] = useState<string | null>(null);
+  const [readyToPlay, setReadyToPlay] = useState<boolean>(false);
+  const [readyToPlayGraph, setReadyToPlayGraph] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [equation, setEquation] = useState<string>("");
   const [isVideoProcessing, setIsVideoProcessing] = useState<boolean>(false);
@@ -18,75 +20,100 @@ function Home() {
   const [graphProgress, setGraphProgress] = useState<number>(0);
   const { t } = useTranslation();
 
-    // useEffect: Progress takibi
-useEffect(() => {
-  if (progressUrl) {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(progressUrl);
-        const data = await res.json();
-
-        setNormalProgress(data.normal_progress);
-        setGraphProgress(data.graph_progress);
-
-        if (data.normal_progress >= 100) setIsVideoProcessing(false);
-        if (data.graph_progress >= 100) setIsGraphProcessing(false);
-
-      } catch (error) {
-        console.error("Progress fetch failed:", error);
-      }
-    }, 2000);
-    return () => clearInterval(interval);
-  }
-}, [progressUrl]);
-
-// handleSubmit
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  const error = validateEquation(equation);
-  if (error) return alert(error);
-  if (!selectedFile) return alert('Lütfen bir dosya seçin.');
-
-  // Reset
-  setVideoUrl(null);
-  setGraphVideoUrl(null);
-  setProgressUrl(null);
-  setNormalProgress(0);
-  setGraphProgress(0);
-
-  const formData = new FormData();
-  formData.append('file', selectedFile);
-  formData.append('equation', equation);
-
-  setLoading(true);
-  setIsVideoProcessing(true);
-  setIsGraphProcessing(true);
-
-  try {
-    const response = await fetch('/upload/', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setVideoUrl(data.video_url);
-      setGraphVideoUrl(data.graph_video_url);
-      setProgressUrl(data.progress_url);
-    } else {
-      alert('Bir hata oluştu!');
+  useEffect(() => {
+    if (videoUrl) {
+      const check = async () => {
+        try {
+          const res = await fetch(videoUrl, { method: 'HEAD' });
+          if (res.ok) setReadyToPlay(true);
+        } catch (e) {
+          console.error("Normal video doğrulanamadı:", e);
+        }
+      };
+      check();
     }
-  } catch (error) {
-    console.error('Hata:', error);
-    alert('Sunucuya erişilemedi.');
-  } finally {
-    setLoading(false);
-  }
-};
+  }, [videoUrl]);
 
+  useEffect(() => {
+    if (graphVideoUrl) {
+      const check = async () => {
+        try {
+          const res = await fetch(graphVideoUrl, { method: 'HEAD' });
+          if (res.ok) setReadyToPlayGraph(true);
+        } catch (e) {
+          console.error("Graph video doğrulanamadı:", e);
+        }
+      };
+      check();
+    }
+  }, [graphVideoUrl]);
 
-  
+  useEffect(() => {
+    if (progressUrl) {
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(progressUrl);
+          const data = await res.json();
+          setNormalProgress(data.normal_progress);
+          setGraphProgress(data.graph_progress);
+
+          if (data.normal_progress >= 100) setIsVideoProcessing(false);
+          if (data.graph_progress >= 100) setIsGraphProcessing(false);
+
+        } catch (error) {
+          console.error("Progress fetch failed:", error);
+        }
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [progressUrl]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const error = validateEquation(equation);
+    if (error) return alert(error);
+    if (!selectedFile) return alert('Lütfen bir dosya seçin.');
+
+    // Reset
+    setVideoUrl(null);
+    setGraphVideoUrl(null);
+    setProgressUrl(null);
+    setNormalProgress(0);
+    setGraphProgress(0);
+    setReadyToPlay(false);
+    setReadyToPlayGraph(false);
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('equation', equation);
+
+    setLoading(true);
+    setIsVideoProcessing(true);
+    setIsGraphProcessing(true);
+
+    try {
+      const response = await fetch('/upload/', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setVideoUrl(data.video_url);
+        setGraphVideoUrl(data.graph_video_url);
+        setProgressUrl(data.progress_url);
+      } else {
+        alert('Bir hata oluştu!');
+      }
+    } catch (error) {
+      console.error('Hata:', error);
+      alert('Sunucuya erişilemedi.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFile(e.target.files[0]);
@@ -106,8 +133,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (!/[xX]/.test(equation)) return '"x" değişkeni eksik.';
     return null;
   };
-
-
 
   return (
     <div className="app-container">
@@ -131,7 +156,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <h3>{t('normal_video')}</h3>
           <p>Yükleme: {normalProgress}%</p>
           <progress value={normalProgress} max="100" />
-          
+
           {isVideoProcessing && normalProgress < 100 && (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
@@ -139,9 +164,9 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           )}
 
-          {videoUrl && normalProgress === 100 && (
+          {readyToPlay && normalProgress === 100 && (
             <video
-              key={videoUrl} // EKLENDİ
+              key={videoUrl}
               controls
               width="100%"
               style={{ marginTop: "1rem" }}
@@ -150,7 +175,6 @@ const handleSubmit = async (e: React.FormEvent) => {
               Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
-
         </div>
 
         <div className='video'>
@@ -165,9 +189,9 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           )}
 
-          {graphVideoUrl && graphProgress === 100 && (
+          {readyToPlayGraph && graphProgress === 100 && (
             <video
-              key={graphVideoUrl} // EKLENDİ
+              key={graphVideoUrl}
               controls
               width="100%"
               style={{ marginTop: "1rem" }}
@@ -176,10 +200,8 @@ const handleSubmit = async (e: React.FormEvent) => {
               Tarayıcınız video etiketini desteklemiyor.
             </video>
           )}
-
         </div>
       </div>
-
 
       <footer className="footer">
         {t('footer_text')}
