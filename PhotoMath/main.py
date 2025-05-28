@@ -7,7 +7,7 @@ import os
 import shutil
 import logging
 from uuid import uuid4
-import subprocess
+import imageio.v3 as iio
 
 # --- Log Ayarları ---
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +35,7 @@ async def upload_image(
     file: UploadFile = File(...),
     equation: str = Form(...)
 ):
+    # Session klasörü
     session_id = uuid4().hex
     session_dir = os.path.join(TEMP_DIR, session_id)
     os.makedirs(session_dir, exist_ok=True)
@@ -50,6 +51,7 @@ async def upload_image(
     logger.info(f"[UPLOAD] Dosya yüklendi: {file.filename}")
     logger.info(f"[UPLOAD] Denklem alındı: {equation}")
 
+    # Görseli al ve numpy'a çevir
     image = Image.open(input_path).convert("RGB")
     pixels = np.array(image).astype(np.int64)
     equation = equation.replace("^", "**")
@@ -77,39 +79,27 @@ async def upload_image(
             logger.warning(f"[ERROR] Denklem hatalı: {e}")
             return x
 
-    # FFmpeg pipe ile doğrudan video üret
-    logger.info("[VIDEO] FFmpeg başlatılıyor...")
-    ffmpeg_cmd = [
-        "ffmpeg",
-        "-y",
-        "-f", "image2pipe",
-        "-vcodec", "png",
-        "-framerate", "30",
-        "-i", "-",
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
-        video_path
-    ]
+    # Frame'leri bellekte tut
+    frames = []
+    for i in range(1, 301):
+        logger.info(f"[FRAME] {i}. frame işleniyor...")
+        value = f(pixels + i)
+        wrapped = np.mod(value, 256).astype(np.uint8)
+        frame = Image.fromarray(wrapped)
 
-    with subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE) as proc:
-        for i in range(1, 301):
-            logger.info(f"[FRAME] {i}. frame işleniyor...")
-            value = f(pixels + i)
-            wrapped = np.mod(value, 256).astype(np.uint8)
-            frame = Image.fromarray(wrapped)
+        # Genişlik ve yükseklik çift olmalı
+        w, h = frame.size
+        if w % 2 != 0 or h % 2 != 0:
+            frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
 
-            w, h = frame.size
-            if w % 2 != 0 or h % 2 != 0:
-                frame = frame.crop((0, 0, w - (w % 2), h - (h % 2)))
+        frames.append(np.array(frame))
 
-            frame.save(proc.stdin, format="PNG")
-
-        proc.stdin.close()
-        proc.wait()
-
-    logger.info(f"[DONE] Video tamamlandı: {video_path}")
+    # Video dosyasını yaz
+    logger.info("[VIDEO] Video oluşturuluyor...")
+    iio.imwrite(video_path, frames, fps=30, codec='libx264')
+    logger.info(f"[DONE] Video kaydedildi: {video_path}")
 
     return {
         "video_url": f"/static/{video_name}",
-        "graph_video_url": None
+        "graph_video_url": None  # Şimdilik grafik videosu yok
     }
