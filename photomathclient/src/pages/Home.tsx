@@ -213,7 +213,7 @@ function Home() {
               <span>{t('processing_graph')}</span>
             </div>
           )}
-          {readyToPlayGraph && graphProgress === 100 && (
+          
             <video
               ref={graphRef}
               key={graphVideoUrl}
@@ -223,10 +223,10 @@ function Home() {
               width="100%"
               style={{ marginTop: "1rem", backgroundColor: "#000" }}
             >
-              <source src={graphVideoUrl ?? ""} type="video/mp4" />
+              <source src="http://159.65.53.223/media/output_3212e65d05404f928974bd5342d0c163.mp4" type="video/mp4" />
               Tarayıcınız video etiketini desteklemiyor.
             </video>
-          )}
+            
         </div>
       </div>
 
