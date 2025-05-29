@@ -161,13 +161,14 @@ useEffect(() => {
         {/* Normal Video */}
         <div className="video">
           <h3>{t('normal_video')}</h3>
+         
           {isVideoProcessing && normalProgress < 100 ? (
             <div className="custom-progress">
               <div
                 style={{ "--progress-width": `${normalProgress}%` } as React.CSSProperties}
               ></div>
             </div>
-          ) : loading && !videoReady ? (
+          ) : !videoReady && (isVideoProcessing || loading) ? (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>Videonuz hazırlanıyor...</span>
@@ -188,6 +189,8 @@ useEffect(() => {
               </video>
             )
           )}
+
+
         </div>
 
         {videoReady && (
