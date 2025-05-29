@@ -1,38 +1,37 @@
-/* Math Keyboard Container */
+/* MATH KEYBOARD - Tema duyarlı */
+
 .math-keyboard-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin: 0 auto;
   font-family: sans-serif;
-  color: #e2e8f0; 
-  background-color: #2d3748;
+  color: var(--math-text);
+  background-color: var(--math-bg);
   padding: 20px;
   border-radius: 12px;
 }
-.input-container{
+
+.input-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   min-width: max-content;
 }
 
-.input-container label{
+.input-container label {
   font-size: 1.2rem;
 }
 
-
-
-/* Math Input */
 .math-input {
   display: flex;
   width: 100%;
   font-size: 1.2rem;
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid #4a5568; 
-  background-color: #4a5568; 
-  color: #e2e8f0; 
+  border: 1px solid var(--math-border);
+  background-color: var(--math-input-bg);
+  color: var(--math-text);
 }
 
 .keyboard-grid {
@@ -46,14 +45,14 @@
   font-size: 1rem;
   border: none;
   border-radius: 6px;
-  background-color: #4a5568;
-  color: #e2e8f0;
+  background-color: var(--math-button-bg);
+  color: var(--math-button-text);
   cursor: pointer;
   transition: 0.2s;
 }
 
 .keyboard-grid button:hover {
-  background-color: #2d3748;
+  background-color: var(--math-button-hover);
 }
 
 .clear-button {
@@ -66,18 +65,36 @@
 }
 
 @media (max-width: 371px) {
-  /* Math Input */
   .math-input {
-    display: flex;
-    width: 100%; /* kapsayıcı div'in genişliğine uyum sağlar */
+    width: 100%;
     font-size: 1.2rem;
     padding: 8px;
-    margin: 10px 0; /* yatay margin'leri sıfırlayarak taşmayı engeller */
+    margin: 10px 0;
     border-radius: 6px;
-    border: 1px solid #4a5568; 
-    background-color: #4a5568; 
-    color: #e2e8f0; 
-    box-sizing: border-box; /* padding ve border dahil edilerek taşmayı önler */
-    overflow: hidden; /* ekstra içerik taşarsa gizler */
+    border: 1px solid var(--math-border);
+    background-color: var(--math-input-bg);
+    color: var(--math-text);
+    box-sizing: border-box;
+    overflow: hidden;
   }
+}
+
+:root {
+  --math-bg: #f9fafb;
+  --math-text: #1e293b;
+  --math-border: #cbd5e1;
+  --math-input-bg: #e2e8f0;
+  --math-button-bg: #cbd5e1;
+  --math-button-text: #1e293b;
+  --math-button-hover: #94a3b8;
+}
+
+.dark {
+  --math-bg: #2d3748;
+  --math-text: #e2e8f0;
+  --math-border: #4a5568;
+  --math-input-bg: #4a5568;
+  --math-button-bg: #4a5568;
+  --math-button-text: #e2e8f0;
+  --math-button-hover: #2d3748;
 }

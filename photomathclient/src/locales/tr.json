@@ -14,5 +14,6 @@
   "about_me": "Merhaba, ben Yusuf Utkurak, bilgisayar mühendisliği öğrencisiyim. Bu projeyi eğlence amaçlı ve kişisel gelişimim için yaptım. Uygulama geliştirme, yapay zeka ve robotik gibi konulara ilgi duyuyorum.",
   "about_title": "Hakkımda",
   "clear": "Temizle",
-  "loading_video": "Videonuz hazırlanıyor..."
+  "loading_video": "Videonuz hazırlanıyor...",
+  "loading_graph": "RGB grafiği hazırlanıyor.."
 }

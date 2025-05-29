@@ -201,7 +201,7 @@ useEffect(() => {
             {!graphVideoUrl || isGraphProcessing ? (
               <div className="spinner-container">
                 <div className="spinner-circle"></div>
-                <span>RGB grafiği hazırlanıyor...</span>
+                <span>{t('loading_graph')}</span>
               </div>
             ) : (
               <video
@@ -221,10 +221,6 @@ useEffect(() => {
         )}
 
       </div>
-
-      <footer className="footer">
-        {t('footer_text')}
-      </footer>
     </div>
   );
 }

@@ -1,19 +1,24 @@
-/* Navbar Genel */
+/* Navbar */
 .navbar {
   width: 100%;
-  background-color: #000000;
+  background-color: var(--navbar-bg);
   padding: 1rem 0;
-  color: #e2e8f0;
-  border-bottom: 1px solid #334155;
+  color: var(--navbar-text);
+  border-bottom: 1px solid var(--navbar-border);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 999;
 }
 
 /* İçerik hizalama */
 .navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2rem;
   flex-wrap: wrap;
 }
 
@@ -23,22 +28,151 @@
   font-weight: 600;
 }
 
-/* Linkler ve dil switch bir arada */
+/* Linkler */
 .navbar-links {
   display: flex;
   align-items: center;
   gap: 1.5rem;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-/* Link görünümü */
 .navbar-links a {
-  color: #e2e8f0;
+  color: var(--navbar-link);
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .navbar-links a:hover {
-  color: #a3bee1;
+  color: var(--navbar-hover);
 }
+
+/* Hamburger */
+.hamburger {
+  display: none;
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: var(--navbar-text);
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .navbar-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+    padding-top: 1rem;
+  }
+
+  .navbar-links.active {
+    display: flex;
+  }
+}
+
+/* Language Switch */
+.language-switch {
+  width: 80px;
+  height: 32px;
+  background-color: var(--switch-bg);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 3px;
+  transition: background-color 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.toggle {
+  width: 50%;
+  height: 100%;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+  color: white;
+  background-color: var(--switch-active);
+  user-select: none;
+}
+
+.toggle.tr {
+  transform: translateX(0%);
+}
+
+.toggle.en {
+  transform: translateX(100%);
+}
+
+/* Tema Değişkenleri */
+:root {
+  --navbar-bg: #ffffff;
+  --navbar-text: #1e293b;
+  --navbar-border: #cbd5e1;
+  --navbar-link: #1e293b;
+  --navbar-hover: #3b82f6;
+  --switch-bg: #cbd5e1;
+  --switch-active: #3b82f6;
+}
+
+.dark {
+  --navbar-bg: #000000;
+  --navbar-text: #e2e8f0;
+  --navbar-border: #334155;
+  --navbar-link: #e2e8f0;
+  --navbar-hover: #a3bee1;
+  --switch-bg: #1f2937;
+  --switch-active: #3b82f6;
+}
+
+/* Tema geçiş butonu */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: var(--theme-toggle-bg);
+  color: var(--theme-toggle-icon);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-left: 0.5rem;
+}
+
+.theme-toggle:hover {
+  background-color: var(--theme-toggle-hover);
+  transform: rotate(20deg);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+/* Tema Değişkenleri */
+:root {
+  --theme-toggle-bg: #e2e8f0;
+  --theme-toggle-icon: #1e293b;
+  --theme-toggle-hover: #cbd5e1;
+}
+
+.dark {
+  --theme-toggle-bg: #1f2937;
+  --theme-toggle-icon: #f1f5f9;
+  --theme-toggle-hover: #334155;
+}
+

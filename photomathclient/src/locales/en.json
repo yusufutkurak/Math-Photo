@@ -14,5 +14,6 @@
   "about_me": "Hello, I'm Yusuf Utkurak, a computer engineering student. I created this project for fun and to improve myself. I'm interested in topics like app development, artificial intelligence, and robotics.",
   "about_title": "About Me",
   "clear": "Clear",
-  "loading_video": "loading..."
+  "loading_video": "Preparing your video...",
+  "loading_graph": "Preparing the RGB graph."
 }

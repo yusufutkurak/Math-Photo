@@ -1,28 +1,45 @@
+/* DROPZONE - Tema duyarlı */
 
-/* Dropzone alanı */
 .dropzone {
   display: flex;
   min-height: 150px;
-  border: 2px dashed #64748b;
+  border: 2px dashed var(--dropzone-border);
   border-radius: 10px;
   padding: 2rem;
   text-align: center;
   cursor: pointer;
-  background-color: #2d3748;
+  background-color: var(--dropzone-bg);
   transition: background-color 0.3s ease, border-color 0.3s ease;
   margin-bottom: 1rem;
-  color: #94a3b8;
+  color: var(--dropzone-text);
 }
 
 .dropzone:hover {
-  background-color: #1e293b;
-  border-color: #3b82f6;
+  background-color: var(--dropzone-hover);
+  border-color: var(--dropzone-border-hover);
 }
 
-/* Dosya adı yazısı */
 .file-info {
-  color: #4ade80;
+  color: var(--dropzone-file);
   font-size: 0.95rem;
   margin-top: 0.5rem;
   font-weight: 500;
+}
+
+:root {
+  --dropzone-bg: #f1f5f9;
+  --dropzone-border: #94a3b8;
+  --dropzone-text: #1e293b;
+  --dropzone-hover: #e2e8f0;
+  --dropzone-border-hover: #3b82f6;
+  --dropzone-file: #10b981;
+}
+
+.dark {
+  --dropzone-bg: #2d3748;
+  --dropzone-border: #64748b;
+  --dropzone-text: #94a3b8;
+  --dropzone-hover: #1e293b;
+  --dropzone-border-hover: #3b82f6;
+  --dropzone-file: #4ade80;
 }
