@@ -27,7 +27,6 @@ function Home() {
         try {
           const res = await fetch(progressUrl);
           const data = await res.json();
-          console.log("📦 Progress update:", data); // BURAYA EKLE
           setNormalProgress(data.normal_progress);
           setGraphProgress(data.graph_progress);
           setVideoReady(data.video_ready);
@@ -57,8 +56,8 @@ function Home() {
   }, [videoReady, videoUrl]);
 
   useEffect(() => {
+    console.log("vr",videoReady);
   if (videoReady && !graphVideoUrl) {
-    // graph video URL'i backendden otomatik gelmeyecekse, tahminle oluştur
     const url = videoUrl?.replace("output_", "graph_video_");
     if (url) setGraphVideoUrl(url);
   }
@@ -78,54 +77,48 @@ useEffect(() => {
   }
 }, [graphVideoUrl]);
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const error = validateEquation(equation);
-  if (error) return alert(error);
-  if (!selectedFile) return alert('Lütfen bir dosya seçin.');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const error = validateEquation(equation);
+    if (error) return alert(error);
+    if (!selectedFile) return alert('Lütfen bir dosya seçin.');
 
-  console.log("🚀 Upload started");
+    setVideoUrl(null);
+    setGraphVideoUrl(null);
+    setProgressUrl(null);
+    setNormalProgress(0);
+    setGraphProgress(0);
+    setVideoReady(false);
 
-  setVideoUrl(null);
-  setGraphVideoUrl(null);
-  setProgressUrl(null);
-  setNormalProgress(0);
-  setGraphProgress(0);
-  setVideoReady(false);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('equation', equation);
 
-  const formData = new FormData();
-  formData.append('file', selectedFile);
-  formData.append('equation', equation);
+    setLoading(true);
+    setIsVideoProcessing(true);
+    setIsGraphProcessing(true);
 
-  setLoading(true);
-  setIsVideoProcessing(true);
-  setIsGraphProcessing(true);
+    try {
+      const response = await fetch('/upload/', {
+        method: 'POST',
+        body: formData,
+      });
 
-  try {
-    const response = await fetch('/upload/', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("✅ Upload response:", data);
-      setVideoUrl(data.video_url);
-      setGraphVideoUrl(data.graph_video_url);
-      setProgressUrl(data.progress_url);
-    } else {
-      console.error("❌ Upload failed");
-      alert('Bir hata oluştu!');
+      if (response.ok) {
+        const data = await response.json();
+        setVideoUrl(data.video_url);
+        setGraphVideoUrl(data.graph_video_url);
+        setProgressUrl(data.progress_url);
+      } else {
+        alert('Bir hata oluştu!');
+      }
+    } catch (error) {
+      console.error('Hata:', error);
+      alert('Sunucuya erişilemedi.');
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Hata:', error);
-    alert('Sunucuya erişilemedi.');
-  } finally {
-    console.log("🛑 Upload finished");
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -147,17 +140,7 @@ useEffect(() => {
     return null;
   };
 
-  const shouldShowSpinner =
-  normalProgress >= 100 && !videoReady && (loading || isVideoProcessing);
 
-
-  console.log("🔍 Spinner check →", {
-    normalProgress,
-    videoReady,
-    loading,
-    isVideoProcessing,
-    shouldShowSpinner 
-  });
   return (
     <div className="app-container">
       <div className="main-content">
@@ -180,13 +163,13 @@ useEffect(() => {
         <div className="video">
           <h3>{t('normal_video')}</h3>
          
-         {isVideoProcessing && normalProgress < 100 ? (
+          {isVideoProcessing && normalProgress < 100 ? (
             <div className="custom-progress">
               <div
                 style={{ "--progress-width": `${normalProgress}%` } as React.CSSProperties}
               ></div>
             </div>
-          ) : shouldShowSpinner ? (
+          ) : !videoReady && normalProgress > 99 ? (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
               <span>Videonuz hazırlanıyor...</span>
