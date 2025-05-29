@@ -172,7 +172,7 @@ useEffect(() => {
           ) : !videoReady && normalProgress > 99 ? (
             <div className="spinner-container">
               <div className="spinner-circle"></div>
-              <span>Videonuz hazırlanıyor...</span>
+              <span>{t('loading_video')}</span>
             </div>
           ) : (
             videoUrl && videoReady && (
